@@ -1,0 +1,13 @@
+{
+  "manifest_version": 3,
+  "name": "WebToDo",
+  "version": "1.0",
+  "description": "웹서핑 중 마우스 우클릭으로 간편하게 할 일을 저장하고 관리하는 도구",
+  "permissions": ["contextMenus", "storage"],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_popup": "popup.html"
+  }
+}

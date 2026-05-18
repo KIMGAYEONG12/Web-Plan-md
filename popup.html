@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>WebToDo</title>
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <div class="top-bar">
+      <div class="clock-container">
+        <div id="live-clock">00:00:00</div>
+      </div>
+      <button id="theme-toggle-btn" title="테마 변경">🌙</button>
+    </div>
+
+    <div class="header-area">
+      <h3>나의 WebTODO 리스트</h3>
+      <div class="header-buttons">
+        <button id="export-csv-btn">CSV 내보내기 💾</button>
+        <button id="clear-all-btn">전체 삭제 🧹</button>
+      </div>
+    </div>
+
+    <div class="search-area">
+      <input
+        type="text"
+        id="search-input"
+        placeholder="🔍 저장된 할 일 검색..."
+      />
+    </div>
+
+    <div class="input-area">
+      <input
+        type="text"
+        id="todo-input"
+        placeholder="새로운 할 일 직접 입력...📝"
+      />
+      <button id="add-btn">추가</button>
+    </div>
+
+    <ul id="todo-list"></ul>
+
+    <div class="footer-area">
+      <button id="pwa-install-btn">🖥️ 바탕화면 독립 앱으로 실행</button>
+    </div>
+
+    <script src="popup.js"></script>
+  </body>
+</html>

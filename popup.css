@@ -1,0 +1,311 @@
+/* 전역 스타일 설정 및 레이아웃 깨짐 방지 */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+/* ☀️ 라이트 모드 (기본 설정) CSS 변수 정의 */
+:root {
+  --bg-color: #f7fafc;
+  --text-color: #2d3748;
+  --card-bg: #ffffff;
+  --border-color: #cbd5e0;
+  --hover-red: #fed7d7;
+  --text-muted: #718096;
+  --list-border: #edf2f7;
+  --input-focus: #3182ce;
+  --clock-bg: #2d3748;
+  --clock-text: #63b3ed;
+  --placeholder-color: #a0aec0;
+}
+
+/* 🌙 다크 모드 활성화 시 자동 치환될 CSS 변수 정의 */
+[data-theme="dark"] {
+  --bg-color: #1a202c;
+  --text-color: #e2e8f0;
+  --card-bg: #2d3748;
+  --border-color: #4a5568;
+  --hover-red: #9b2c2c;
+  --text-muted: #a0aec0;
+  --list-border: #4a5568;
+  --input-focus: #63b3ed;
+  --clock-bg: #1a202c;
+  --clock-text: #f6ad55; /* 다크모드 가시성 강화를 위한 오렌지 스펙트럼 적용 */
+  --placeholder-color: #718096;
+}
+
+body {
+  width: 360px;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  margin: 12px;
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease; /* 부드러운 테마 전환 밀림 효과 방지 */
+  overflow: hidden;
+}
+
+/* 1. 상단 탑바 및 디지털시계 */
+.top-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.clock-container {
+  flex: 1;
+  background-color: var(--clock-bg);
+  color: var(--clock-text);
+  text-align: center;
+  padding: 8px 0;
+  border-radius: 6px;
+  font-size: 20px;
+  font-weight: bold;
+  letter-spacing: 1px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition:
+    background-color 0.2s,
+    color 0.2s;
+}
+
+#theme-toggle-btn {
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  padding: 8px 10px;
+  cursor: pointer;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  color: var(--text-color);
+}
+
+#theme-toggle-btn:hover {
+  filter: brightness(0.9);
+}
+
+/* 2. 상단 컨트롤 헤더 영역 */
+.header-area {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.header-area h3 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.header-buttons {
+  display: flex;
+  gap: 4px;
+}
+
+#clear-all-btn,
+#export-csv-btn {
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  padding: 4px 6px;
+  font-size: 11px;
+  color: var(--text-color);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+#clear-all-btn:hover {
+  background-color: var(--hover-red);
+  color: #e53e3e;
+}
+
+#export-csv-btn:hover {
+  background-color: #ebf8ff;
+  color: #2b6cb0;
+  border-color: #bee3f8;
+}
+
+/* 3 & 4. 인풋 및 검색 영역 공통 명세 */
+.search-area,
+.input-area {
+  margin-bottom: 10px;
+}
+
+.search-area input {
+  width: 100%;
+  padding: 7px 10px;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  background-color: var(--card-bg);
+  color: var(--text-color);
+  outline: none;
+  font-size: 12px;
+  transition: border-color 0.2s;
+}
+
+.input-area {
+  display: flex;
+}
+
+#todo-input {
+  flex: 1;
+  padding: 7px 10px;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  background-color: var(--card-bg);
+  color: var(--text-color);
+  outline: none;
+  font-size: 12px;
+  transition: border-color 0.2s;
+}
+
+#todo-input:focus,
+.search-area input:focus {
+  border-color: var(--input-focus);
+}
+
+/* 다크모드 가독성을 위한 플레이스홀더 컬러 가변 제어 추가 */
+input::placeholder {
+  color: var(--placeholder-color);
+}
+
+#add-btn {
+  padding: 7px 12px;
+  background-color: #3182ce;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  margin-left: 6px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+#add-btn:hover {
+  background-color: #2b6cb0;
+}
+
+/* 5. 투두 리스트 뷰 및 기획서 맞춤형 커스텀 스크롤바 */
+ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  max-height: 180px;
+  overflow-y: auto;
+}
+
+ul::-webkit-scrollbar {
+  width: 6px;
+}
+
+ul::-webkit-scrollbar-thumb {
+  background-color: var(--border-color);
+  border-radius: 3px;
+}
+
+li {
+  display: flex;
+  align-items: center;
+  padding: 8px 4px;
+  border-bottom: 1px solid var(--list-border);
+}
+
+li input[type="checkbox"] {
+  cursor: pointer;
+  margin-right: 4px;
+}
+
+.todo-text {
+  flex: 1;
+  margin-left: 6px;
+  font-size: 13px;
+  text-decoration: none;
+  word-break: break-all;
+  color: var(--text-color);
+}
+
+/* 링크 유무에 따른 텍스트 분기 색상 대응 */
+.todo-link {
+  color: #3182ce;
+}
+
+[data-theme="dark"] .todo-link {
+  color: #63b3ed;
+}
+
+.todo-link:hover {
+  text-decoration: underline;
+}
+
+/* 완료 처리 시 취소선 및 색상 투명화 처리 */
+.completed {
+  text-decoration: line-through !important;
+  color: var(--text-muted) !important;
+}
+
+/* 뱃지 및 액션 단추 스타일 */
+.action-buttons {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.copy-btn,
+.delete-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 12px;
+  padding: 2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.copy-btn {
+  color: var(--text-muted);
+}
+
+.copy-btn:hover {
+  color: var(--input-focus);
+}
+
+.delete-btn {
+  color: #e53e3e;
+  font-weight: bold;
+}
+
+.delete-btn:hover {
+  color: #c53030;
+}
+
+/* 6. 푸터 영역 및 독립형 앱(PWA) 바로가기 명세 모사 버튼 */
+.footer-area {
+  margin-top: 12px;
+  border-top: 1px solid var(--border-color);
+  padding-top: 10px;
+  text-align: center;
+}
+
+#pwa-install-btn {
+  width: 100%;
+  padding: 7px 0;
+  background-color: #4a5568;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+#pwa-install-btn:hover {
+  background-color: #2d3748;
+}
