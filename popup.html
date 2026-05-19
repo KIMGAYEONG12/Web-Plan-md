@@ -6,45 +6,109 @@
     <title>WebToDo</title>
     <link rel="stylesheet" href="popup.css" />
   </head>
+
   <body>
+    <!-- ================================================= -->
+    <!-- 상단 바 -->
+    <!-- ================================================= -->
     <div class="top-bar">
       <div class="clock-container">
         <div id="live-clock">00:00:00</div>
       </div>
-      <button id="theme-toggle-btn" title="테마 변경">🌙</button>
+      <button id="theme-toggle-btn" title="테마 변경" aria-label="테마 변경">🌙</button>
     </div>
 
+    <!-- ================================================= -->
+    <!-- 헤더 -->
+    <!-- ================================================= -->
     <div class="header-area">
-      <h3>나의 WebTODO 리스트</h3>
+      <h3>📌 나의 WebTODO</h3>
       <div class="header-buttons">
-        <button id="export-csv-btn">CSV 내보내기 💾</button>
+        <button id="export-csv-btn">CSV 💾</button>
         <button id="clear-all-btn">전체 삭제 🧹</button>
       </div>
     </div>
 
-    <div class="search-area">
-      <input
-        type="text"
-        id="search-input"
-        placeholder="🔍 저장된 할 일 검색..."
-      />
+    <!-- ================================================= -->
+    <!-- 통계 -->
+    <!-- ================================================= -->
+    <div class="stats-area">
+      <div class="stat-card">
+        <span class="stat-label">TODO</span>
+        <span id="todo-count">0</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-label">Highlight</span>
+        <span id="highlight-count">0</span>
+      </div>
     </div>
 
-    <div class="input-area">
-      <input
-        type="text"
-        id="todo-input"
-        placeholder="새로운 할 일 직접 입력...📝"
-      />
+    <!-- ================================================= -->
+    <!-- 탭 -->
+    <!-- ================================================= -->
+    <div class="tab-area">
+      <button class="tab-btn active" data-tab="todo">TODO</button>
+      <button class="tab-btn" data-tab="highlight">Highlight</button>
+    </div>
+
+    <!-- ================================================= -->
+    <!-- 검색 -->
+    <!-- ================================================= -->
+    <div class="search-area">
+      <input type="text" id="search-input" placeholder="🔍 저장된 내용 검색..." autocomplete="off" />
+    </div>
+
+    <!-- ================================================= -->
+    <!-- 입력 -->
+    <!-- ================================================= -->
+    <div class="input-area" id="todo-input-area">
+      <input type="text" id="todo-input" placeholder="새로운 할 일 입력...📝" autocomplete="off" />
       <button id="add-btn">추가</button>
     </div>
 
-    <ul id="todo-list"></ul>
-
-    <div class="footer-area">
-      <button id="pwa-install-btn">🖥️ 바탕화면 독립 앱으로 실행</button>
+    <div class="input-area" id="highlight-input-area">
+      <input type="text" id="highlight-input" placeholder="새로운 Highlight 입력...✨" autocomplete="off" />
+      <button id="highlight-add-btn">추가</button>
     </div>
 
+    <!-- ================================================= -->
+    <!-- TODO 리스트 -->
+    <!-- ================================================= -->
+    <section id="todo-section" class="content-section active">
+      <ul id="todo-list"></ul>
+      <div id="todo-empty" class="empty-state">📭 저장된 TODO가 없습니다.</div>
+    </section>
+
+    <!-- ================================================= -->
+    <!-- Highlight 리스트 -->
+    <!-- ================================================= -->
+    <section id="highlight-section" class="content-section">
+      <ul id="highlight-list"></ul>
+      <div id="highlight-empty" class="empty-state">✨ 저장된 Highlight가 없습니다.</div>
+    </section>
+
+    <!-- ================================================= -->
+    <!-- 로딩 -->
+    <!-- ================================================= -->
+    <div id="loading-overlay" class="loading-overlay hidden">
+      <div class="loader"></div>
+    </div>
+
+    <!-- ================================================= -->
+    <!-- 토스트 -->
+    <!-- ================================================= -->
+    <div id="popup-toast"></div>
+
+    <!-- ================================================= -->
+    <!-- 푸터 -->
+    <!-- ================================================= -->
+    <div class="footer-area">
+      <button id="pwa-install-btn">🖥️ 독립 앱처럼 실행</button>
+    </div>
+
+    <!-- ================================================= -->
+    <!-- 스크립트 -->
+    <!-- ================================================= -->
     <script src="popup.js"></script>
   </body>
 </html>

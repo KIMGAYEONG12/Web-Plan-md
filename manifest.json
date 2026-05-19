@@ -1,13 +1,65 @@
 {
   "manifest_version": 3,
   "name": "WebToDo",
-  "version": "1.0",
-  "description": "웹서핑 중 마우스 우클릭으로 간편하게 할 일을 저장하고 관리하는 도구",
-  "permissions": ["contextMenus", "storage"],
+  "short_name": "WebToDo",
+  "version": "2.1.0",
+  "description": "웹페이지 TODO + 형광펜 저장 확장프로그램",
+
+  "permissions": [
+    "storage",
+    "activeTab",
+    "scripting",
+    "contextMenus",
+    "tabs"
+  ],
+
+  "host_permissions": [
+    "<all_urls>"
+  ],
+
   "background": {
-    "service_worker": "background.js"
+    "service_worker": "background.js",
+    "type": "module"
   },
+
   "action": {
-    "default_popup": "popup.html"
-  }
+    "default_popup": "popup.html",
+    "default_title": "WebToDo",
+
+    "default_icon": {
+      "16": "./icons/icon16.png"
+    }
+  },
+
+  "content_scripts": [
+    {
+      "matches": [
+        "<all_urls>"
+      ],
+
+      "js": [
+        "content.js"
+      ],
+
+      "run_at": "document_idle"
+    }
+  ],
+
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "icons/*"
+      ],
+
+      "matches": [
+        "<all_urls>"
+      ]
+    }
+  ],
+
+  "icons": {
+    "16": "./icons/icon16.png"
+  },
+
+  "minimum_chrome_version": "110"
 }

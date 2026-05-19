@@ -1,60 +1,297 @@
-// [background.js - 완벽 예외 처리 적용 최종 완성본]
+// ======================================================
+// WebToDo Background Service Worker
+// Manifest V3
+// ======================================================
 
-// 확장 프로그램 설치 또는 업데이트 시 우클릭 메뉴 생성
+console.log("✅ WebToDo background.js 실행됨");
+
+// ======================================================
+// 상수
+// ======================================================
+
+const MENU_ID = "add_todo_item";
+
+// ======================================================
+// 설치/업데이트 시 실행
+// ======================================================
+
 chrome.runtime.onInstalled.addListener(() => {
-  // 중복 생성 에러를 방지하기 위해 기존 컨텍스트 메뉴를 모두 제거 후 생성
-  chrome.contextMenus.removeAll(() => {
-    chrome.contextMenus.create({
-      id: "add_todo_item",
-      title: "할 일(TODO) 추가: '%s'",
-      contexts: ["selection", "page"],
-    });
-    console.log("WebToDo: 우클릭 컨텍스트 메뉴가 성공적으로 등록되었습니다.");
-  });
+  console.log("🔄 확장 프로그램 설치 또는 업데이트");
+
+  createContextMenu();
 });
 
-// 우클릭 메뉴 클릭 이벤트 리스너
-chrome.contextMenus.onClicked.addListener((info, tab) => {
-  if (info.menuItemId === "add_todo_item") {
-    let todoText = "새로운 할 일";
+// ======================================================
+// 브라우저 시작 시
+// ======================================================
 
-    // 텍스트가 제대로 선택되었는지 검증 및 트리밍
-    if (info.selectionText && info.selectionText.trim() !== "") {
-      todoText = info.selectionText.trim();
+chrome.runtime.onStartup.addListener(() => {
+  console.log("🚀 WebToDo 시작됨");
+});
 
-      // [UX 최적화] 너무 긴 텍스트를 드래그했을 경우 팝업 UI 깨짐 방지를 위해 50자로 제한
-      if (todoText.length > 50) {
-        todoText = todoText.substring(0, 50) + "...";
-      }
+// ======================================================
+// Context Menu 생성
+// ======================================================
+
+function createContextMenu() {
+  chrome.contextMenus.removeAll(() => {
+    if (chrome.runtime.lastError) {
+      console.error(
+        "❌ contextMenus.removeAll 오류:",
+        chrome.runtime.lastError.message,
+      );
     }
 
-    // 크롬 로컬 스토리지에서 기존 리스트 가져오기
-    chrome.storage.local.get({ todoList: [] }, (result) => {
-      let currentList = result.todoList;
+    chrome.contextMenus.create(
+      {
+        id: MENU_ID,
 
-      // 기획서 명세에 맞춘 데이터 구조 객체 생성 (안전한 URL 기본값 처리 추가)
-      const newTodo = {
-        id: Date.now(),
-        text: todoText,
-        completed: false,
-        url: info.pageUrl || "", // URL이 undefined일 경우 빈 문자열로 안전하게 저장
-      };
+        title: "WebToDo 저장",
 
-      currentList.push(newTodo);
+        contexts: ["selection"],
+      },
+      () => {
+        if (chrome.runtime.lastError) {
+          console.error(
+            "❌ contextMenus.create 오류:",
+            chrome.runtime.lastError.message,
+          );
 
-      // 스토리지에 최종 저장
-      chrome.storage.local.set({ todoList: currentList }, () => {
-        // DevTools 콘솔창 실시간 디버깅 로그 출력
-        console.log("🎯 성공적으로 할 일이 백그라운드에 저장되었습니다!");
-        console.log("저장된 데이터:", newTodo);
+          return;
+        }
 
-        // 팝업창이 켜져 있다면 실시간으로 화면을 다시 그리라는 신호(Message) 브로드캐스팅
-        chrome.runtime
-          .sendMessage({ action: "REFRESH_TODO_LIST" })
-          .catch(() => {
-            // 팝업창이 닫혀 있을 때는 메시지 받을 대상이 없으므로 발생하는 에러이며, 비동기 통신 특성상 정상적인 현상입니다.
-          });
+        console.log("✅ Context Menu 생성 완료");
+      },
+    );
+  });
+}
+
+// ======================================================
+// 우클릭 메뉴 클릭 이벤트
+// ======================================================
+
+chrome.contextMenus.onClicked.addListener(async (info, tab) => {
+  try {
+    // ==================================================
+    // 메뉴 확인
+    // ==================================================
+
+    if (info.menuItemId !== MENU_ID) {
+      return;
+    }
+
+    console.log("🖱️ TODO 메뉴 클릭");
+
+    // ==================================================
+    // 탭 체크
+    // ==================================================
+
+    if (!tab?.id || !tab?.url) {
+      console.log("ℹ️ 유효하지 않은 탭");
+
+      return;
+    }
+
+    // ==================================================
+    // 브라우저 내부 페이지 제외
+    // ==================================================
+
+    if (
+      tab.url.startsWith("chrome://") ||
+      tab.url.startsWith("edge://") ||
+      tab.url.startsWith("about:")
+    ) {
+      console.log("ℹ️ 브라우저 내부 페이지 제외");
+
+      return;
+    }
+
+    // ==================================================
+    // TODO 텍스트 생성
+    // ==================================================
+
+    let todoText = "새 TODO";
+
+    if (info.selectionText?.trim()) {
+      todoText = info.selectionText.trim();
+
+      // 길이 제한
+      if (todoText.length > 200) {
+        todoText = `${todoText.substring(0, 200)}...`;
+      }
+    } else if (tab.title) {
+      todoText = tab.title;
+    }
+
+    // ==================================================
+    // Storage 데이터 가져오기
+    // ==================================================
+
+    const storageData = await chrome.storage.local.get({
+      todoList: [],
+      highlightList: [],
+    });
+
+    const todoList = Array.isArray(storageData.todoList)
+      ? storageData.todoList
+      : [];
+
+    const highlightList = Array.isArray(storageData.highlightList)
+      ? storageData.highlightList
+      : [];
+
+    // ==================================================
+    // ID 생성
+    // ==================================================
+
+    const id = `${Date.now()}_${Math.random()
+      .toString(36)
+      .substring(2, 9)}`;
+
+    // ==================================================
+    // TODO 데이터
+    // ==================================================
+
+    const newTodo = {
+      id,
+
+      text: todoText,
+
+      completed: false,
+
+      url: info.pageUrl || tab.url,
+
+      title: tab.title || "",
+
+      createdAt: new Date().toISOString(),
+    };
+
+    // ==================================================
+    // Highlight 데이터
+    // ==================================================
+
+    const newHighlight = {
+      id,
+
+      text: todoText,
+
+      url: info.pageUrl || tab.url,
+
+      title: tab.title || "",
+
+      createdAt: new Date().toISOString(),
+    };
+
+    // ==================================================
+    // 배열 맨 앞 추가
+    // ==================================================
+
+    todoList.unshift(newTodo);
+
+    highlightList.unshift(newHighlight);
+
+    // ==================================================
+    // Storage 저장
+    // ==================================================
+
+    await chrome.storage.local.set({
+      todoList,
+      highlightList,
+    });
+
+    console.log("✅ TODO + Highlight 저장 완료");
+
+    // ==================================================
+    // Popup 새로고침 요청
+    // ==================================================
+
+    chrome.runtime.sendMessage(
+      {
+        action: "REFRESH_TODO_LIST",
+      },
+      () => {
+        if (chrome.runtime.lastError) {
+          console.log("ℹ️ popup 실행 안됨");
+        }
+      },
+    );
+
+    // ==================================================
+    // content.js 메시지 전송
+    // ==================================================
+
+    chrome.tabs.sendMessage(
+      tab.id,
+      {
+        action: "HIGHLIGHT_SELECTION",
+      },
+      () => {
+        if (chrome.runtime.lastError) {
+          console.log(
+            "ℹ️ HIGHLIGHT_SELECTION 실패:",
+            chrome.runtime.lastError.message,
+          );
+        }
+      },
+    );
+
+    // ==================================================
+    // 토스트 메시지 요청
+    // ==================================================
+
+    chrome.tabs.sendMessage(
+      tab.id,
+      {
+        action: "SHOW_NOTIFICATION",
+      },
+      () => {
+        if (chrome.runtime.lastError) {
+          console.log(
+            "ℹ️ SHOW_NOTIFICATION 실패:",
+            chrome.runtime.lastError.message,
+          );
+        }
+      },
+    );
+  } catch (error) {
+    console.error("❌ background.js 전체 오류:", error);
+  }
+});
+
+// ======================================================
+// 메시지 수신
+// ======================================================
+
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+  try {
+    // ==================================================
+    // Ping 테스트
+    // ==================================================
+
+    if (request.action === "PING") {
+      sendResponse({
+        success: true,
+
+        message: "background.js alive",
       });
+
+      return;
+    }
+
+    // ==================================================
+    // 기본 응답
+    // ==================================================
+
+    sendResponse({
+      success: true,
+    });
+  } catch (error) {
+    console.error("❌ onMessage 오류:", error);
+
+    sendResponse({
+      success: false,
+
+      error: error.message,
     });
   }
 });

@@ -1,128 +1,232 @@
-/* 전역 스타일 설정 및 레이아웃 깨짐 방지 */
+/* =========================================================
+   WebTODO - popup.css
+   TODO/Highlight
+========================================================= */
+
+/* ---------------------------------------------------------
+   RESET
+--------------------------------------------------------- */
+
 *,
 *::before,
 *::after {
   box-sizing: border-box;
 }
 
-/* ☀️ 라이트 모드 (기본 설정) CSS 변수 정의 */
+/* ---------------------------------------------------------
+   LIGHT THEME
+--------------------------------------------------------- */
+
 :root {
   --bg-color: #f7fafc;
   --text-color: #2d3748;
   --card-bg: #ffffff;
   --border-color: #cbd5e0;
+
   --hover-red: #fed7d7;
+
   --text-muted: #718096;
-  --list-border: #edf2f7;
-  --input-focus: #3182ce;
+
+  --shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+
   --clock-bg: #2d3748;
-  --clock-text: #63b3ed;
-  --placeholder-color: #a0aec0;
+  --clock-text: #ffffff;
+
+  --input-focus: #3182ce;
+
+  --danger-color: #e53e3e;
+
+  --highlight-bg: #fff59d;
+  --highlight-hover: #ffe066;
+
+  --scrollbar-color: #cbd5e0;
+
+  --tab-active: #3182ce;
+  --tab-active-text: #ffffff;
+
+  --overlay-bg: rgba(0, 0, 0, 0.35);
+
+  --toast-bg: #2d3748;
+  --toast-text: #ffffff;
 }
 
-/* 🌙 다크 모드 활성화 시 자동 치환될 CSS 변수 정의 */
+/* ---------------------------------------------------------
+   DARK THEME
+--------------------------------------------------------- */
+
 [data-theme="dark"] {
   --bg-color: #1a202c;
   --text-color: #e2e8f0;
+
   --card-bg: #2d3748;
+
   --border-color: #4a5568;
+
   --hover-red: #9b2c2c;
+
   --text-muted: #a0aec0;
-  --list-border: #4a5568;
+
+  --shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+
   --input-focus: #63b3ed;
-  --clock-bg: #1a202c;
-  --clock-text: #f6ad55; /* 다크모드 가시성 강화를 위한 오렌지 스펙트럼 적용 */
-  --placeholder-color: #718096;
+
+  --clock-bg: #111827;
+  --clock-text: #f6ad55;
+
+  --scrollbar-color: #4a5568;
+
+  --tab-active: #63b3ed;
+  --tab-active-text: #1a202c;
+
+  --overlay-bg: rgba(0, 0, 0, 0.5);
+
+  --toast-bg: #edf2f7;
+  --toast-text: #1a202c;
 }
+
+/* ---------------------------------------------------------
+   BODY
+--------------------------------------------------------- */
 
 body {
   width: 360px;
-  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-  margin: 12px;
+
+  margin: 0;
+  padding: 12px;
+
   background-color: var(--bg-color);
   color: var(--text-color);
+
+  font-family:
+    "Segoe UI",
+    Tahoma,
+    Geneva,
+    Verdana,
+    sans-serif;
+
   transition:
     background-color 0.2s ease,
-    color 0.2s ease; /* 부드러운 테마 전환 밀림 효과 방지 */
+    color 0.2s ease;
+
   overflow: hidden;
 }
 
-/* 1. 상단 탑바 및 디지털시계 */
+/* ---------------------------------------------------------
+   TOP BAR
+--------------------------------------------------------- */
+
 .top-bar {
   display: flex;
   align-items: center;
   gap: 8px;
+
   margin-bottom: 12px;
 }
 
 .clock-container {
   flex: 1;
+
   background-color: var(--clock-bg);
   color: var(--clock-text);
+
   text-align: center;
+
   padding: 8px 0;
-  border-radius: 6px;
-  font-size: 20px;
-  font-weight: bold;
+
+  border-radius: 8px;
+
+  font-size: 18px;
+  font-weight: 700;
+
   letter-spacing: 1px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+
+  box-shadow: var(--shadow);
+
   transition:
     background-color 0.2s,
     color 0.2s;
 }
 
 #theme-toggle-btn {
-  background: var(--card-bg);
+  width: 42px;
+  height: 42px;
+
   border: 1px solid var(--border-color);
-  border-radius: 6px;
-  padding: 8px 10px;
+
+  background: var(--card-bg);
+
+  border-radius: 8px;
+
   cursor: pointer;
-  font-size: 16px;
+
+  color: var(--text-color);
+
+  font-size: 18px;
+
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.2s;
-  color: var(--text-color);
+
+  transition:
+    transform 0.15s ease,
+    background-color 0.2s ease,
+    border-color 0.2s ease;
 }
 
 #theme-toggle-btn:hover {
-  filter: brightness(0.9);
+  transform: scale(1.05);
 }
 
-/* 2. 상단 컨트롤 헤더 영역 */
+#theme-toggle-btn:active {
+  transform: scale(0.96);
+}
+
+/* ---------------------------------------------------------
+   HEADER
+--------------------------------------------------------- */
+
 .header-area {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 10px;
+
+  margin-bottom: 12px;
 }
 
 .header-area h3 {
   margin: 0;
-  font-size: 14px;
-  font-weight: 600;
+
+  font-size: 15px;
+  font-weight: 700;
 }
 
 .header-buttons {
   display: flex;
-  gap: 4px;
+  gap: 6px;
 }
 
 #clear-all-btn,
 #export-csv-btn {
-  background: var(--card-bg);
   border: 1px solid var(--border-color);
-  border-radius: 4px;
-  padding: 4px 6px;
-  font-size: 11px;
+
+  background: var(--card-bg);
+
   color: var(--text-color);
+
+  border-radius: 6px;
+
+  padding: 5px 8px;
+
+  font-size: 11px;
+
   cursor: pointer;
+
   transition: all 0.2s ease;
 }
 
 #clear-all-btn:hover {
   background-color: var(--hover-red);
-  color: #e53e3e;
+  color: var(--danger-color);
 }
 
 #export-csv-btn:hover {
@@ -131,72 +235,186 @@ body {
   border-color: #bee3f8;
 }
 
-/* 3 & 4. 인풋 및 검색 영역 공통 명세 */
+/* ---------------------------------------------------------
+   STATS
+--------------------------------------------------------- */
+
+.stats-area {
+  display: flex;
+  gap: 10px;
+
+  margin-bottom: 12px;
+}
+
+.stat-card {
+  flex: 1;
+
+  background: var(--card-bg);
+
+  border: 1px solid var(--border-color);
+
+  border-radius: 10px;
+
+  padding: 10px;
+
+  text-align: center;
+
+  box-shadow: var(--shadow);
+}
+
+.stat-label {
+  display: block;
+
+  font-size: 11px;
+
+  color: var(--text-muted);
+
+  margin-bottom: 4px;
+}
+
+.stat-card span:last-child {
+  font-size: 18px;
+  font-weight: 700;
+}
+
+/* ---------------------------------------------------------
+   TAB
+--------------------------------------------------------- */
+
+.tab-area {
+  display: flex;
+
+  gap: 8px;
+
+  margin-bottom: 12px;
+}
+
+.tab-btn {
+  flex: 1;
+
+  border: 1px solid var(--border-color);
+
+  background: var(--card-bg);
+
+  color: var(--text-color);
+
+  border-radius: 8px;
+
+  padding: 8px 0;
+
+  font-size: 12px;
+  font-weight: 600;
+
+  cursor: pointer;
+
+  transition: all 0.2s ease;
+}
+
+.tab-btn.active {
+  background: var(--tab-active);
+  color: var(--tab-active-text);
+
+  border-color: transparent;
+}
+
+/* ---------------------------------------------------------
+   SEARCH + INPUT
+--------------------------------------------------------- */
+
 .search-area,
 .input-area {
-  margin-bottom: 10px;
-}
-
-.search-area input {
-  width: 100%;
-  padding: 7px 10px;
-  border: 1px solid var(--border-color);
-  border-radius: 4px;
-  background-color: var(--card-bg);
-  color: var(--text-color);
-  outline: none;
-  font-size: 12px;
-  transition: border-color 0.2s;
-}
-
-.input-area {
   display: flex;
+
+  gap: 8px;
+
+  margin-bottom: 12px;
 }
 
+.search-area input,
 #todo-input {
   flex: 1;
-  padding: 7px 10px;
+
+  padding: 10px 12px;
+
   border: 1px solid var(--border-color);
-  border-radius: 4px;
+
+  border-radius: 10px;
+
   background-color: var(--card-bg);
+
   color: var(--text-color);
+
   outline: none;
-  font-size: 12px;
-  transition: border-color 0.2s;
+
+  font-size: 13px;
+
+  transition:
+    border-color 0.2s,
+    background-color 0.2s;
 }
 
-#todo-input:focus,
-.search-area input:focus {
+.search-area input:focus,
+#todo-input:focus {
   border-color: var(--input-focus);
 }
 
-/* 다크모드 가독성을 위한 플레이스홀더 컬러 가변 제어 추가 */
 input::placeholder {
-  color: var(--placeholder-color);
+  color: var(--text-muted);
 }
 
 #add-btn {
-  padding: 7px 12px;
-  background-color: #3182ce;
-  color: white;
   border: none;
-  border-radius: 4px;
-  margin-left: 6px;
+
+  background-color: #3182ce;
+
+  color: white;
+
+  border-radius: 10px;
+
+  padding: 0 16px;
+
   cursor: pointer;
+
   font-size: 12px;
-  font-weight: 500;
+  font-weight: 700;
+
+  transition:
+    background-color 0.2s ease,
+    transform 0.15s ease;
 }
 
 #add-btn:hover {
   background-color: #2b6cb0;
 }
 
-/* 5. 투두 리스트 뷰 및 기획서 맞춤형 커스텀 스크롤바 */
+#add-btn:active {
+  transform: scale(0.96);
+}
+
+/* ---------------------------------------------------------
+   CONTENT SECTION
+--------------------------------------------------------- */
+
+.content-section {
+  display: none;
+}
+
+.content-section.active {
+  display: block;
+}
+
+/* ---------------------------------------------------------
+   LIST
+--------------------------------------------------------- */
+
 ul {
   list-style: none;
+
   padding: 0;
   margin: 0;
-  max-height: 180px;
+
+  max-height: 260px;
+
   overflow-y: auto;
 }
 
@@ -205,71 +423,117 @@ ul::-webkit-scrollbar {
 }
 
 ul::-webkit-scrollbar-thumb {
-  background-color: var(--border-color);
-  border-radius: 3px;
+  background-color: var(--scrollbar-color);
+
+  border-radius: 999px;
 }
+
+/* ---------------------------------------------------------
+   LIST ITEM
+--------------------------------------------------------- */
 
 li {
   display: flex;
   align-items: center;
-  padding: 8px 4px;
-  border-bottom: 1px solid var(--list-border);
+  justify-content: space-between;
+
+  gap: 8px;
+
+  padding: 10px;
+
+  margin-bottom: 8px;
+
+  background-color: var(--card-bg);
+
+  border: 1px solid var(--border-color);
+
+  border-radius: 12px;
+
+  box-shadow: var(--shadow);
 }
 
-li input[type="checkbox"] {
+/* ---------------------------------------------------------
+   TODO ITEM
+--------------------------------------------------------- */
+
+.todo-left {
+  display: flex;
+  align-items: center;
+
+  flex: 1;
+
+  min-width: 0;
+}
+
+.todo-check {
   cursor: pointer;
-  margin-right: 4px;
 }
 
 .todo-text {
   flex: 1;
-  margin-left: 6px;
+
+  margin-left: 8px;
+
   font-size: 13px;
-  text-decoration: none;
-  word-break: break-all;
-  color: var(--text-color);
+
+  line-height: 1.5;
+
+  word-break: break-word;
 }
 
-/* 링크 유무에 따른 텍스트 분기 색상 대응 */
-.todo-link {
-  color: #3182ce;
-}
-
-[data-theme="dark"] .todo-link {
-  color: #63b3ed;
-}
-
-.todo-link:hover {
-  text-decoration: underline;
-}
-
-/* 완료 처리 시 취소선 및 색상 투명화 처리 */
 .completed {
   text-decoration: line-through !important;
+
   color: var(--text-muted) !important;
+
+  opacity: 0.7;
 }
 
-/* 뱃지 및 액션 단추 스타일 */
+/* ---------------------------------------------------------
+   HIGHLIGHT ITEM
+--------------------------------------------------------- */
+
+.highlight-item {
+  border-left: 5px solid #ecc94b;
+}
+
+.highlight-content {
+  flex: 1;
+
+  font-size: 13px;
+
+  line-height: 1.5;
+
+  word-break: break-word;
+}
+
+/* ---------------------------------------------------------
+   BUTTONS
+--------------------------------------------------------- */
+
 .action-buttons {
   display: flex;
-  gap: 6px;
   align-items: center;
+
+  gap: 6px;
 }
 
 .copy-btn,
 .delete-btn {
-  background: none;
   border: none;
-  cursor: pointer;
-  font-size: 12px;
-  padding: 2px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
 
-.copy-btn {
-  color: var(--text-muted);
+  background: transparent;
+
+  cursor: pointer;
+
+  font-size: 14px;
+
+  padding: 4px;
+
+  transition:
+    transform 0.1s ease,
+    opacity 0.2s ease,
+    color 0.2s ease;
 }
 
 .copy-btn:hover {
@@ -277,35 +541,169 @@ li input[type="checkbox"] {
 }
 
 .delete-btn {
-  color: #e53e3e;
-  font-weight: bold;
+  color: var(--danger-color);
 }
 
 .delete-btn:hover {
-  color: #c53030;
+  opacity: 0.8;
 }
 
-/* 6. 푸터 영역 및 독립형 앱(PWA) 바로가기 명세 모사 버튼 */
-.footer-area {
-  margin-top: 12px;
-  border-top: 1px solid var(--border-color);
-  padding-top: 10px;
+.copy-btn:active,
+.delete-btn:active {
+  transform: scale(0.9);
+}
+
+/* ---------------------------------------------------------
+   EMPTY
+--------------------------------------------------------- */
+
+.empty-state {
+  display: none;
+
   text-align: center;
+
+  padding: 24px 12px;
+
+  color: var(--text-muted);
+
+  font-size: 13px;
+}
+
+/* ---------------------------------------------------------
+   LOADING
+--------------------------------------------------------- */
+
+.loading-overlay {
+  position: fixed;
+
+  inset: 0;
+
+  background: var(--overlay-bg);
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  z-index: 999;
+}
+
+.loading-overlay.hidden {
+  display: none;
+}
+
+.loader {
+  width: 40px;
+  height: 40px;
+
+  border: 4px solid rgba(255, 255, 255, 0.3);
+
+  border-top: 4px solid white;
+
+  border-radius: 50%;
+
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ---------------------------------------------------------
+   TOAST
+--------------------------------------------------------- */
+
+#popup-toast {
+  position: fixed;
+
+  left: 50%;
+  bottom: 20px;
+
+  transform: translateX(-50%) translateY(10px);
+
+  background: var(--toast-bg);
+  color: var(--toast-text);
+
+  padding: 10px 16px;
+
+  border-radius: 10px;
+
+  font-size: 12px;
+  font-weight: 600;
+
+  opacity: 0;
+
+  pointer-events: none;
+
+  transition:
+    opacity 0.25s ease,
+    transform 0.25s ease;
+
+  z-index: 9999;
+
+  box-shadow: var(--shadow);
+}
+
+#popup-toast.show {
+  opacity: 1;
+
+  transform: translateX(-50%) translateY(0);
+}
+
+/* ---------------------------------------------------------
+   FOOTER
+--------------------------------------------------------- */
+
+.footer-area {
+  margin-top: 14px;
 }
 
 #pwa-install-btn {
   width: 100%;
-  padding: 7px 0;
+
+  padding: 9px 0;
+
   background-color: #4a5568;
+
   color: white;
+
   border: none;
-  border-radius: 4px;
-  font-size: 11px;
-  font-weight: 500;
+
+  border-radius: 8px;
+
+  font-size: 12px;
+  font-weight: 600;
+
   cursor: pointer;
-  transition: background-color 0.2s;
+
+  transition:
+    background-color 0.2s,
+    transform 0.15s ease;
 }
 
 #pwa-install-btn:hover {
   background-color: #2d3748;
+}
+
+#pwa-install-btn:active {
+  transform: scale(0.98);
+}
+
+/* ---------------------------------------------------------
+   HIGHLIGHT EFFECT
+--------------------------------------------------------- */
+
+.webtodo-highlight {
+  background-color: var(--highlight-bg) !important;
+
+  transition:
+    background-color 0.2s,
+    box-shadow 0.2s;
+}
+
+.webtodo-highlight:hover {
+  background-color: var(--highlight-hover) !important;
+
+  box-shadow: 0 0 0 2px rgba(255, 214, 102, 0.4);
 }
