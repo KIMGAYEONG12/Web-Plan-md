@@ -1,5 +1,6 @@
 // ======================================================
 // WebToDo Background Service Worker
+// FINAL STABLE VERSION
 // Manifest V3
 // ======================================================
 
@@ -12,21 +13,182 @@ console.log("✅ WebToDo background.js 실행됨");
 const MENU_ID = "add_todo_item";
 
 // ======================================================
-// 설치/업데이트 시 실행
+// 한국 시간 생성
 // ======================================================
 
-chrome.runtime.onInstalled.addListener(() => {
+function getKoreanDateTime() {
+  return new Intl.DateTimeFormat("ko-KR", {
+    timeZone: "Asia/Seoul",
+
+    year: "numeric",
+
+    month: "2-digit",
+
+    day: "2-digit",
+
+    hour: "2-digit",
+
+    minute: "2-digit",
+
+    second: "2-digit",
+
+    hour12: false,
+  }).format(new Date());
+}
+
+// ======================================================
+// Badge 업데이트
+// ======================================================
+
+async function updateBadge() {
+  try {
+    const result = await chrome.storage.local.get({
+      todoList: [],
+    });
+
+    const todos = Array.isArray(result.todoList) ? result.todoList : [];
+
+    const incompleteCount = todos.filter((todo) => !todo.completed).length;
+
+    await chrome.action.setBadgeBackgroundColor({
+      color: "#0ea5e9",
+    });
+
+    // 일부 브라우저에서 미지원일 수 있음
+    if (chrome.action.setBadgeTextColor) {
+      await chrome.action.setBadgeTextColor({
+        color: "#ffffff",
+      });
+    }
+
+    await chrome.action.setBadgeText({
+      text: incompleteCount > 0 ? String(incompleteCount) : "",
+    });
+
+    console.log(`✅ Badge 업데이트: ${incompleteCount}`);
+  } catch (error) {
+    console.error("❌ Badge 업데이트 오류:", error);
+  }
+}
+
+// ======================================================
+// AI 요약
+// ======================================================
+
+async function summarizeText(text) {
+  try {
+    if (!text || text.length < 20) {
+      return "";
+    }
+
+    // API KEY 미설정시 스킵
+    const API_KEY = "hf_YOUR_REAL_API_KEY";
+
+    if (!API_KEY || API_KEY.includes("YOUR_REAL_API_KEY")) {
+      console.log("ℹ️ HuggingFace API Key 미설정");
+
+      return "";
+    }
+
+    const controller = new AbortController();
+
+    const timeout = setTimeout(() => {
+      controller.abort();
+    }, 15000);
+
+    const response = await fetch(
+      "https://api-inference.huggingface.co/models/facebook/bart-large-cnn",
+      {
+        method: "POST",
+
+        signal: controller.signal,
+
+        headers: {
+          "Content-Type": "application/json",
+
+          Authorization: `Bearer ${API_KEY}`,
+        },
+
+        body: JSON.stringify({
+          inputs: text,
+        }),
+      },
+    );
+
+    clearTimeout(timeout);
+
+    if (!response.ok) {
+      console.error("❌ AI 응답 실패:", response.status);
+
+      return "";
+    }
+
+    const result = await response.json();
+
+    if (Array.isArray(result) && result[0]?.summary_text) {
+      return result[0].summary_text;
+    }
+
+    return "";
+  } catch (error) {
+    console.error("❌ AI 요약 오류:", error);
+
+    return "";
+  }
+}
+
+// ======================================================
+// 설치/업데이트
+// ======================================================
+
+chrome.runtime.onInstalled.addListener(async () => {
   console.log("🔄 확장 프로그램 설치 또는 업데이트");
 
   createContextMenu();
+
+  await updateBadge();
+
+  // ================================================
+  // Side Panel 설정
+  // ================================================
+
+  if (chrome.sidePanel) {
+    try {
+      await chrome.sidePanel.setPanelBehavior({
+        openPanelOnActionClick: true,
+      });
+
+      console.log("✅ Side Panel 설정 완료");
+    } catch (error) {
+      console.error("❌ Side Panel 오류:", error);
+    }
+  }
 });
 
 // ======================================================
-// 브라우저 시작 시
+// 브라우저 시작
 // ======================================================
 
-chrome.runtime.onStartup.addListener(() => {
+chrome.runtime.onStartup.addListener(async () => {
   console.log("🚀 WebToDo 시작됨");
+
+  createContextMenu();
+
+  await updateBadge();
+});
+
+// ======================================================
+// Storage 변경 감지 → Badge 자동 업데이트
+// ======================================================
+
+chrome.storage.onChanged.addListener(async (changes, areaName) => {
+  try {
+    if (areaName === "local" && changes.todoList) {
+      await updateBadge();
+    }
+  } catch (error) {
+    console.error("❌ storage.onChanged 오류:", error);
+  }
 });
 
 // ======================================================
@@ -36,17 +198,14 @@ chrome.runtime.onStartup.addListener(() => {
 function createContextMenu() {
   chrome.contextMenus.removeAll(() => {
     if (chrome.runtime.lastError) {
-      console.error(
-        "❌ contextMenus.removeAll 오류:",
-        chrome.runtime.lastError.message,
-      );
+      console.error("❌ removeAll 오류:", chrome.runtime.lastError.message);
     }
 
     chrome.contextMenus.create(
       {
         id: MENU_ID,
 
-        title: "WebToDo 저장",
+        title: "📌 WebToDo 저장",
 
         contexts: ["selection"],
       },
@@ -67,24 +226,22 @@ function createContextMenu() {
 }
 
 // ======================================================
-// 우클릭 메뉴 클릭 이벤트
+// Context Menu 클릭
 // ======================================================
 
 chrome.contextMenus.onClicked.addListener(async (info, tab) => {
   try {
-    // ==================================================
+    // ================================================
     // 메뉴 확인
-    // ==================================================
+    // ================================================
 
     if (info.menuItemId !== MENU_ID) {
       return;
     }
 
-    console.log("🖱️ TODO 메뉴 클릭");
-
-    // ==================================================
+    // ================================================
     // 탭 체크
-    // ==================================================
+    // ================================================
 
     if (!tab?.id || !tab?.url) {
       console.log("ℹ️ 유효하지 않은 탭");
@@ -92,9 +249,9 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
       return;
     }
 
-    // ==================================================
-    // 브라우저 내부 페이지 제외
-    // ==================================================
+    // ================================================
+    // 내부 페이지 제외
+    // ================================================
 
     if (
       tab.url.startsWith("chrome://") ||
@@ -123,9 +280,15 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
       todoText = tab.title;
     }
 
-    // ==================================================
-    // Storage 데이터 가져오기
-    // ==================================================
+    // ================================================
+    // AI 요약
+    // ================================================
+
+    const summary = await summarizeText(todoText);
+
+    // ================================================
+    // 기존 데이터
+    // ================================================
 
     const storageData = await chrome.storage.local.get({
       todoList: [],
@@ -144,9 +307,9 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
     // ID 생성
     // ==================================================
 
-    const id = `${Date.now()}_${Math.random()
-      .toString(36)
-      .substring(2, 9)}`;
+    const id = `${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+
+    const koreanDate = getKoreanDateTime();
 
     // ==================================================
     // TODO 데이터
@@ -157,11 +320,15 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
 
       text: todoText,
 
+      summary,
+
       completed: false,
 
       url: info.pageUrl || tab.url,
 
       title: tab.title || "",
+
+      koreanDate,
 
       createdAt: new Date().toISOString(),
     };
@@ -175,16 +342,20 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
 
       text: todoText,
 
+      summary,
+
       url: info.pageUrl || tab.url,
 
       title: tab.title || "",
 
+      koreanDate,
+
       createdAt: new Date().toISOString(),
     };
 
-    // ==================================================
-    // 배열 맨 앞 추가
-    // ==================================================
+    // ================================================
+    // 저장
+    // ================================================
 
     todoList.unshift(newTodo);
 
@@ -196,10 +367,17 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
 
     await chrome.storage.local.set({
       todoList,
+
       highlightList,
     });
 
     console.log("✅ TODO + Highlight 저장 완료");
+
+    // ================================================
+    // Badge 즉시 업데이트
+    // ================================================
+
+    await updateBadge();
 
     // ==================================================
     // Popup 새로고침 요청
@@ -211,7 +389,7 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
       },
       () => {
         if (chrome.runtime.lastError) {
-          console.log("ℹ️ popup 실행 안됨");
+          console.log("ℹ️ popup 미실행 상태");
         }
       },
     );
@@ -235,14 +413,16 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
       },
     );
 
-    // ==================================================
-    // 토스트 메시지 요청
-    // ==================================================
+    // ================================================
+    // 토스트
+    // ================================================
 
     chrome.tabs.sendMessage(
       tab.id,
       {
         action: "SHOW_NOTIFICATION",
+
+        message: "✅ WebToDo 저장 완료",
       },
       () => {
         if (chrome.runtime.lastError) {
@@ -254,7 +434,7 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
       },
     );
   } catch (error) {
-    console.error("❌ background.js 전체 오류:", error);
+    console.error("❌ background.js 오류:", error);
   }
 });
 
@@ -263,35 +443,63 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
 // ======================================================
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-  try {
-    // ==================================================
-    // Ping 테스트
-    // ==================================================
+  (async () => {
+    try {
+      // ==============================================
+      // Ping
+      // ==============================================
 
-    if (request.action === "PING") {
+      if (request.action === "PING") {
+        sendResponse({
+          success: true,
+
+          message: "background alive",
+        });
+
+        return;
+      }
+
+      // ==============================================
+      // Badge 강제 업데이트
+      // ==============================================
+
+      if (request.action === "UPDATE_BADGE") {
+        await updateBadge();
+
+        sendResponse({
+          success: true,
+        });
+
+        return;
+      }
+
+      // ==============================================
+      // Context Menu 재생성
+      // ==============================================
+
+      if (request.action === "RECREATE_CONTEXT_MENU") {
+        createContextMenu();
+
+        sendResponse({
+          success: true,
+        });
+
+        return;
+      }
+
       sendResponse({
         success: true,
-
-        message: "background.js alive",
       });
+    } catch (error) {
+      console.error("❌ onMessage 오류:", error);
 
-      return;
+      sendResponse({
+        success: false,
+
+        error: error.message,
+      });
     }
+  })();
 
-    // ==================================================
-    // 기본 응답
-    // ==================================================
-
-    sendResponse({
-      success: true,
-    });
-  } catch (error) {
-    console.error("❌ onMessage 오류:", error);
-
-    sendResponse({
-      success: false,
-
-      error: error.message,
-    });
-  }
+  return true;
 });

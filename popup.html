@@ -1,114 +1,235 @@
 <!doctype html>
 <html lang="ko">
   <head>
+    <!-- ======================================================
+         기본 설정
+    ======================================================= -->
     <meta charset="UTF-8" />
+
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <meta
+      name="description"
+      content="WebToDo - 간단한 할 일 및 하이라이트 관리 앱"
+    />
+
+    <meta name="theme-color" content="#ffffff" />
+
     <title>WebToDo</title>
+
+    <!-- ======================================================
+         Favicon
+         favicon.ico 없을 경우 아이콘 파일 사용
+    ======================================================= -->
+    <link rel="icon" href="icons/icon48.png" type="image/png" />
+
+    <!-- ======================================================
+         CSS
+    ======================================================= -->
     <link rel="stylesheet" href="popup.css" />
   </head>
 
   <body>
-    <!-- ================================================= -->
-    <!-- 상단 바 -->
-    <!-- ================================================= -->
-    <div class="top-bar">
-      <div class="clock-container">
-        <div id="live-clock">00:00:00</div>
+    <!-- ======================================================
+         JS 비활성화 안내
+    ======================================================= -->
+    <noscript>
+      이 앱은 JavaScript가 필요합니다. 브라우저에서 JavaScript를 활성화해주세요.
+    </noscript>
+
+    <!-- ======================================================
+         전체 앱 컨테이너
+    ======================================================= -->
+    <main class="app-container">
+      <!-- ======================================================
+           상단 바
+      ======================================================= -->
+      <header class="top-bar">
+        <!-- 시계 -->
+        <div class="clock-container">
+          <div id="live-clock" aria-live="polite">00:00:00</div>
+        </div>
+
+        <!-- 상단 버튼 -->
+        <div class="top-actions">
+          <!-- 사이드패널 -->
+          <button
+            id="open-sidepanel-btn"
+            type="button"
+            title="사이드패널 열기"
+            aria-label="사이드패널 열기"
+          >
+            📌
+          </button>
+
+          <!-- 테마 -->
+          <button
+            id="theme-toggle-btn"
+            type="button"
+            title="테마 변경"
+            aria-label="테마 변경"
+          >
+            🌙
+          </button>
+        </div>
+      </header>
+
+      <!-- ======================================================
+           헤더
+      ======================================================= -->
+      <section class="header-area">
+        <h1 class="app-title">📌 나의 WebTODO</h1>
+
+        <div class="header-buttons">
+          <!-- CSV -->
+          <button id="export-csv-btn" type="button" aria-label="CSV 내보내기">
+            CSV 💾
+          </button>
+
+          <!-- 전체 삭제 -->
+          <button id="clear-all-btn" type="button" aria-label="전체 삭제">
+            전체 삭제 🧹
+          </button>
+        </div>
+      </section>
+
+      <!-- ======================================================
+           통계
+      ======================================================= -->
+      <section class="stats-area">
+        <!-- TODO -->
+        <div class="stat-card">
+          <span class="stat-label"> TODO </span>
+
+          <span id="todo-count"> 0 </span>
+        </div>
+
+        <!-- Highlight -->
+        <div class="stat-card">
+          <span class="stat-label"> Highlight </span>
+
+          <span id="highlight-count"> 0 </span>
+        </div>
+      </section>
+
+      <!-- ======================================================
+           탭
+      ======================================================= -->
+      <nav class="tab-area" aria-label="콘텐츠 탭">
+        <!-- TODO -->
+        <button
+          class="tab-btn active"
+          data-tab="todo"
+          type="button"
+          aria-selected="true"
+        >
+          TODO
+        </button>
+
+        <!-- Highlight -->
+        <button
+          class="tab-btn"
+          data-tab="highlight"
+          type="button"
+          aria-selected="false"
+        >
+          Highlight
+        </button>
+      </nav>
+
+      <!-- ======================================================
+           검색
+      ======================================================= -->
+      <section class="search-area">
+        <input
+          type="text"
+          id="search-input"
+          placeholder="🔍 저장된 내용 검색..."
+          autocomplete="off"
+          spellcheck="false"
+          aria-label="검색"
+        />
+      </section>
+
+      <!-- ======================================================
+           TODO 입력
+      ======================================================= -->
+      <section class="input-area active" id="todo-input-area">
+        <input
+          type="text"
+          id="todo-input"
+          placeholder="새로운 할 일 입력...📝"
+          autocomplete="off"
+          spellcheck="false"
+          maxlength="200"
+          aria-label="할 일 입력"
+        />
+
+        <button id="add-btn" type="button">추가</button>
+      </section>
+
+      <!-- ======================================================
+           Highlight 입력
+      ======================================================= -->
+      <section class="input-area" id="highlight-input-area">
+        <input
+          type="text"
+          id="highlight-input"
+          placeholder="새로운 Highlight 입력...✨"
+          autocomplete="off"
+          spellcheck="false"
+          maxlength="200"
+          aria-label="하이라이트 입력"
+        />
+
+        <button id="highlight-add-btn" type="button">추가</button>
+      </section>
+
+      <!-- ======================================================
+           TODO 리스트
+      ======================================================= -->
+      <section id="todo-section" class="content-section active">
+        <ul id="todo-list" aria-label="TODO 목록"></ul>
+
+        <!-- 빈 상태 -->
+        <div id="todo-empty" class="empty-state">
+          📭 저장된 TODO가 없습니다.
+        </div>
+      </section>
+
+      <!-- ======================================================
+           Highlight 리스트
+      ======================================================= -->
+      <section id="highlight-section" class="content-section">
+        <ul id="highlight-list" aria-label="Highlight 목록"></ul>
+
+        <!-- 빈 상태 -->
+        <div id="highlight-empty" class="empty-state">
+          ✨ 저장된 Highlight가 없습니다.
+        </div>
+      </section>
+
+      <!-- ======================================================
+           로딩 오버레이
+      ======================================================= -->
+      <div
+        id="loading-overlay"
+        class="loading-overlay hidden"
+        aria-hidden="true"
+      >
+        <div class="loader" role="status" aria-label="로딩중"></div>
       </div>
-      <button id="theme-toggle-btn" title="테마 변경" aria-label="테마 변경">🌙</button>
-    </div>
 
-    <!-- ================================================= -->
-    <!-- 헤더 -->
-    <!-- ================================================= -->
-    <div class="header-area">
-      <h3>📌 나의 WebTODO</h3>
-      <div class="header-buttons">
-        <button id="export-csv-btn">CSV 💾</button>
-        <button id="clear-all-btn">전체 삭제 🧹</button>
-      </div>
-    </div>
+      <!-- ======================================================
+           Toast
+      ======================================================= -->
+      <div id="popup-toast" aria-live="assertive"></div>
+    </main>
 
-    <!-- ================================================= -->
-    <!-- 통계 -->
-    <!-- ================================================= -->
-    <div class="stats-area">
-      <div class="stat-card">
-        <span class="stat-label">TODO</span>
-        <span id="todo-count">0</span>
-      </div>
-      <div class="stat-card">
-        <span class="stat-label">Highlight</span>
-        <span id="highlight-count">0</span>
-      </div>
-    </div>
-
-    <!-- ================================================= -->
-    <!-- 탭 -->
-    <!-- ================================================= -->
-    <div class="tab-area">
-      <button class="tab-btn active" data-tab="todo">TODO</button>
-      <button class="tab-btn" data-tab="highlight">Highlight</button>
-    </div>
-
-    <!-- ================================================= -->
-    <!-- 검색 -->
-    <!-- ================================================= -->
-    <div class="search-area">
-      <input type="text" id="search-input" placeholder="🔍 저장된 내용 검색..." autocomplete="off" />
-    </div>
-
-    <!-- ================================================= -->
-    <!-- 입력 -->
-    <!-- ================================================= -->
-    <div class="input-area" id="todo-input-area">
-      <input type="text" id="todo-input" placeholder="새로운 할 일 입력...📝" autocomplete="off" />
-      <button id="add-btn">추가</button>
-    </div>
-
-    <div class="input-area" id="highlight-input-area">
-      <input type="text" id="highlight-input" placeholder="새로운 Highlight 입력...✨" autocomplete="off" />
-      <button id="highlight-add-btn">추가</button>
-    </div>
-
-    <!-- ================================================= -->
-    <!-- TODO 리스트 -->
-    <!-- ================================================= -->
-    <section id="todo-section" class="content-section active">
-      <ul id="todo-list"></ul>
-      <div id="todo-empty" class="empty-state">📭 저장된 TODO가 없습니다.</div>
-    </section>
-
-    <!-- ================================================= -->
-    <!-- Highlight 리스트 -->
-    <!-- ================================================= -->
-    <section id="highlight-section" class="content-section">
-      <ul id="highlight-list"></ul>
-      <div id="highlight-empty" class="empty-state">✨ 저장된 Highlight가 없습니다.</div>
-    </section>
-
-    <!-- ================================================= -->
-    <!-- 로딩 -->
-    <!-- ================================================= -->
-    <div id="loading-overlay" class="loading-overlay hidden">
-      <div class="loader"></div>
-    </div>
-
-    <!-- ================================================= -->
-    <!-- 토스트 -->
-    <!-- ================================================= -->
-    <div id="popup-toast"></div>
-
-    <!-- ================================================= -->
-    <!-- 푸터 -->
-    <!-- ================================================= -->
-    <div class="footer-area">
-      <button id="pwa-install-btn">🖥️ 독립 앱처럼 실행</button>
-    </div>
-
-    <!-- ================================================= -->
-    <!-- 스크립트 -->
-    <!-- ================================================= -->
-    <script src="popup.js"></script>
+    <!-- ======================================================
+         JS
+         defer 추가로 안정성 향상
+    ======================================================= -->
+    <script src="popup.js" defer></script>
   </body>
 </html>
