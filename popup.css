@@ -353,9 +353,18 @@ body {
   border-color: var(--input-focus);
 }
 
+#highlight-input:focus {
+  border-color: #ecc94b;
+  box-shadow: 0 0 0 3px rgba(236, 201, 75, 0.25);
+}
+
 input::placeholder {
   color: var(--text-muted);
 }
+
+/* ---------------------------------------------------------
+   BUTTONS
+--------------------------------------------------------- */
 
 #add-btn {
   border: none;
@@ -384,6 +393,49 @@ input::placeholder {
 
 #add-btn:active {
   transform: scale(0.96);
+}
+
+/* Highlight button (UPDATED) */
+#highlight-add-btn {
+  border: none;
+
+  background: linear-gradient(135deg, #f6e05e, #ecc94b);
+  color: #1a202c;
+
+  border-radius: 10px;
+
+  padding: 0 16px;
+
+  cursor: pointer;
+
+  font-size: 12px;
+  font-weight: 800;
+
+  transition:
+    transform 0.15s ease,
+    filter 0.2s ease;
+}
+
+#highlight-add-btn:hover {
+  filter: brightness(1.05);
+}
+
+#highlight-add-btn:active {
+  transform: scale(0.96);
+}
+
+/* ---------------------------------------------------------
+   INPUT AREA CARD STYLE (HIGHLIGHT UPGRADE)
+--------------------------------------------------------- */
+
+#highlight-input-area {
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+
+  padding: 10px;
+
+  box-shadow: var(--shadow);
 }
 
 /* ---------------------------------------------------------
