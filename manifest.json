@@ -16,7 +16,8 @@
     "contextMenus",
     "tabs",
     "sidePanel",
-    "downloads"
+    "downloads",
+    "clipboardWrite"
   ],
 
   "host_permissions": ["<all_urls>"],

@@ -2,6 +2,7 @@
  * ======================================================
  * WebToDo content.js
  * FINAL STABLE VERSION
+ * Drag Save + Highlight + Toast
  * ======================================================
  */
 
@@ -80,6 +81,56 @@
       });
 
       return true;
+    }
+  });
+
+  // ======================================================
+  // 드래그 자동 저장
+  // ======================================================
+
+  document.addEventListener("mouseup", () => {
+    try {
+      const selection = window.getSelection();
+
+      if (!selection || selection.rangeCount === 0) {
+        return;
+      }
+
+      const selectedText = selection.toString().trim();
+
+      if (!selectedText || selectedText.length < 3) {
+        return;
+      }
+
+      // ================================================
+      // 형광펜 효과 적용
+      // ================================================
+
+      highlightSelection();
+
+      // ================================================
+      // background 저장 요청
+      // ================================================
+
+      chrome.runtime.sendMessage({
+        action: "SAVE_SELECTED_TEXT",
+
+        payload: {
+          text: selectedText,
+
+          sourceUrl: location.href,
+
+          sourceTitle: document.title,
+        },
+      });
+
+      // ================================================
+      // 토스트
+      // ================================================
+
+      showToast("📌 드래그 내용 저장 완료");
+    } catch (error) {
+      console.error("❌ 드래그 저장 오류:", error);
     }
   });
 

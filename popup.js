@@ -1,7 +1,8 @@
 /**
  * ======================================================
  * WebToDo popup.js
- * FINAL STABLE FULL VERSION
+ * FULL VERSION
+ * Clipboard + URL + Drag Save
  * ======================================================
  */
 
@@ -54,7 +55,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const highlightEmpty = document.getElementById("highlight-empty");
 
   // ======================================================
-  // HTML ESCAPE (XSS 방어)
+  // HTML ESCAPE
   // ======================================================
 
   function escapeHTML(str = "") {
@@ -197,15 +198,21 @@ document.addEventListener("DOMContentLoaded", () => {
           ? data.highlightList
           : [];
 
-        let csv = "TYPE,TEXT,DATE,COMPLETED,SUMMARY\n";
+        let csv = "TYPE,TEXT,DATE,COMPLETED,SUMMARY,URL,TITLE\n";
 
         todos.forEach((item) => {
           csv += `"TODO","${String(item.text || "").replace(
             /"/g,
             '""',
-          )}","${String(item.koreanDate || "").replace(/"/g, '""')}","${Boolean(
-            item.completed,
-          )}","${String(item.summary || "").replace(/"/g, '""')}"\n`;
+          )}","${String(item.koreanDate || "").replace(
+            /"/g,
+            '""',
+          )}","${Boolean(item.completed)}","${String(
+            item.summary || "",
+          ).replace(/"/g, '""')}","${String(item.sourceUrl || "").replace(
+            /"/g,
+            '""',
+          )}","${String(item.sourceTitle || "").replace(/"/g, '""')}"\n`;
         });
 
         highlights.forEach((item) => {
@@ -215,7 +222,12 @@ document.addEventListener("DOMContentLoaded", () => {
           )}","${String(item.koreanDate || "").replace(
             /"/g,
             '""',
-          )}","","${String(item.summary || "").replace(/"/g, '""')}"\n`;
+          )}","","${String(item.summary || "").replace(/"/g, '""')}","${String(
+            item.sourceUrl || "",
+          ).replace(/"/g, '""')}","${String(item.sourceTitle || "").replace(
+            /"/g,
+            '""',
+          )}"\n`;
         });
 
         const blob = new Blob([csv], {
@@ -308,7 +320,7 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   // ======================================================
-  // AI 3줄 요약 생성
+  // AI SUMMARY
   // ======================================================
 
   function generateSummary(text = "") {
@@ -328,6 +340,35 @@ document.addEventListener("DOMContentLoaded", () => {
       .slice(0, 3);
 
     return sentences.join(" • ").slice(0, 160);
+  }
+
+  // ======================================================
+  // COPY TO CLIPBOARD
+  // ======================================================
+
+  async function copyItem(item) {
+    try {
+      const formatted = `
+📝 TODO
+${item.text}
+
+📅 저장시간
+${item.koreanDate || ""}
+
+🌐 출처
+${item.sourceTitle || ""}
+
+${item.sourceUrl || ""}
+      `.trim();
+
+      await navigator.clipboard.writeText(formatted);
+
+      showToast("📋 클립보드 복사 완료");
+    } catch (error) {
+      console.error(error);
+
+      showToast("복사 실패");
+    }
   }
 
   // ======================================================
@@ -354,6 +395,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
       const list = Array.isArray(data[key]) ? data[key] : [];
 
+      const [tab] = await chrome.tabs.query({
+        active: true,
+        currentWindow: true,
+      });
+
       list.unshift({
         id: crypto?.randomUUID?.() || `${Date.now()}_${Math.random()}`,
 
@@ -366,6 +412,10 @@ document.addEventListener("DOMContentLoaded", () => {
         koreanDate: getKoreanDateTime(),
 
         createdAt: Date.now(),
+
+        sourceUrl: tab?.url || "",
+
+        sourceTitle: tab?.title || "",
       });
 
       await storage.set({
@@ -528,15 +578,39 @@ document.addEventListener("DOMContentLoaded", () => {
             ${escapeHTML(item.text)}
           </span>
 
-          <button class="delete-btn">
-            ❌
-          </button>
+          <div class="action-buttons">
+
+            <button class="copy-btn">
+              📋
+            </button>
+
+            <button class="delete-btn">
+              ❌
+            </button>
+
+          </div>
 
         </div>
 
         <div class="item-date">
           📅 ${escapeHTML(item.koreanDate || "")}
         </div>
+
+        ${
+          item.sourceUrl
+            ? `
+              <div class="source-url">
+                🔗
+                <a
+                  href="${escapeHTML(item.sourceUrl)}"
+                  target="_blank"
+                >
+                  ${escapeHTML(item.sourceTitle || item.sourceUrl)}
+                </a>
+              </div>
+            `
+            : ""
+        }
 
         ${
           item.summary
@@ -553,6 +627,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
       if (deleteBtn) {
         deleteBtn.addEventListener("click", () => deleteItem(item.id, type));
+      }
+
+      const copyBtn = li.querySelector(".copy-btn");
+
+      if (copyBtn) {
+        copyBtn.addEventListener("click", () => copyItem(item));
       }
 
       const checkbox = li.querySelector(".todo-check");
@@ -600,8 +680,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // ======================================================
-  // STORAGE 실시간 감지
-  // popup 자동 갱신
+  // STORAGE LISTENER
   // ======================================================
 
   chrome.storage.onChanged.addListener((changes, areaName) => {
